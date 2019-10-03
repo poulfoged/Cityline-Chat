@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self' gap-iab: file: https://api.ss.ftl.dk https://localhost:5001 gap: https://www.google-analytics.com https://*.paylike.io; script-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src https://www.google-analytics.com 'self' data:; child-src *  gap-iab: gap:;"
+        />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <title>samsam</title>
+        <meta charset="UTF-8" />
+    </head>
+    <body> 
+        <chat-side-menu></chat-side-menu>
+        <app-loader>
+            <template>
+                <div>
+                    <top-menu></top-menu>
+                    <content-target>
+                        <user-account></user-account>
+                        <chat-viewer channel-id="global"></chat-viewer> -->
+                    </content-target>
+                </div>
+            </template>
+        </app-loader>
+        
+    </body>
+</html>

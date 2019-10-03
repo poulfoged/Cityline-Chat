@@ -1,0 +1,82 @@
+@import (reference) "~font/fonts.less";
+
+.chat-viewer {
+    .open-sans();
+    width: 100%;
+    height: calc(100% - 52px - var(--top-menu-height, 0px));
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    
+
+    [name=messages] {
+        height: 100%;
+        position: absolute;
+        width: 100%;
+        padding-bottom: 96px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    .sentence {
+        display: flex; 
+        align-items: center;
+        padding: 6px 12px;
+        flex-direction: column;
+
+        &:last-of-type {
+            margin-bottom: 10px;
+        }
+
+      
+        
+        local-date {
+            color: hsl(0, 0%, 65%);
+            margin: 6px;
+            font-size: 10px;
+        }
+
+        [name=user-id] {
+            color: hsl(0, 0%, 55%);
+            margin: 4px 6px;
+            font-size: 11px;
+            width: 100%;
+            text-align: left;
+        }
+
+        [name=text] {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+
+            > div {
+                color: white;
+                max-width: 80%;
+                padding: 5px 10px;
+                background-color: rgb(0, 122, 255);
+                border-radius: 0 6px 6px 6px;
+            }
+        }
+
+        &[self] {
+            [name=user-id] {
+                text-align: right;
+            }
+    
+
+            [name=text] {
+                display: flex;
+                justify-content: flex-end;
+
+                > div {
+                    color: white;
+                    max-width: 80%;
+                    padding: 5px 10px;
+                    background-color: hsl(0, 0%, 40%);
+                    border-radius: 6px 0 6px 6px;
+                }
+            }
+        }
+    }
+}

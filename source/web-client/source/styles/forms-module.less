@@ -1,0 +1,66 @@
+@import (reference) "~font/fonts.less";
+@import (reference) "~style/colors.less";
+@import (reference) "~style/breakpoints.less";
+
+.button {
+    .open-sans();
+    border-radius: 3px;
+    border: none;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 8px;
+    margin-left: 10px;  
+}
+
+.primary {
+    .button();
+    background-color: var(--main-color);
+    color: var(--contrast-main-color);
+}
+
+.secondary {
+    .button();
+    background-color: var(--contrast-main-color);
+    color: var(--main-color);
+}
+
+.button-panel {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    flex-direction: column;
+}
+
+.field-set {
+    display: flex;
+    flex-direction: column;
+    .open-sans();
+    justify-content: center;
+
+    label, input {
+        width: 100%;
+    }
+
+    label {
+        margin: 20px 5px 5px 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #8e8e8e;
+    }
+
+    input {
+        font-size: 14px;
+        height: 40px;
+        padding: 0 10px;
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        border-left: 0;
+        border-right: 0;
+        outline: none;
+    }
+
+    button {
+        margin: 30px 10px;
+        width: calc(100% - 20px);
+    }
+}

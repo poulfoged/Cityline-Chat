@@ -1,0 +1,24 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+       
+    ],
+    "jsRules": {},
+    "rules": {
+        "no-var-keyword": true,
+        "quotemark": [true, "double"],
+        "await-promise": true,
+        "no-floating-promises": true,
+        "no-unused-expression": true,
+        "no-string-throw": true,
+        "no-switch-case-fall-through": true,
+        "triple-equals": true,
+        "no-unused-variable": true,
+        "no-duplicate-imports": true,
+        "prefer-const": true,
+        "no-null-keyword": true,
+        "no-invalid-template-strings": true,
+        "prefer-template": true
+    },
+    "rulesDirectory": []
+}   

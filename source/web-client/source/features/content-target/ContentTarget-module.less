@@ -1,0 +1,17 @@
+@import (reference) "~style/breakpoints";
+
+.content-target {
+    display: block;
+    height: calc(100% - var(--top-menu-height, 0px));
+    margin-top: var(--top-menu-height, 0px);
+    overflow-x: hidden;
+    overflow-y: scroll;
+    position: fixed;
+    margin-left: var(--side-menu-width, 0px);
+    width: calc(100% - var(--side-menu-width, 0px));
+    height: 100%;
+    
+    @media @break-phone {
+        width: 100%;
+    }
+}

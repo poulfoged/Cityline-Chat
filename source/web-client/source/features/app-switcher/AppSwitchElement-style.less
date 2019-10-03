@@ -1,0 +1,70 @@
+@import (reference) "~style/prefixer";
+@import (reference) "~style/colors";
+@import (reference) "~style/breakpoints";
+@import (reference) "~style/hairline";
+
+app-switch {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    
+    @media @break-phone {
+        flex-direction: column;
+    }
+
+    app-content {
+        flex: 1 1;
+        background-color: white;
+        display: flex;
+        min-width: 0;
+      
+
+        > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        [name=single-holder] {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1;
+
+            .app-top {
+                flex: 0 0 2px;
+            }
+
+            .app-center {
+                display: flex;
+                flex: 1 1;
+
+                .mside {
+                    flex: 1 1;
+                    flex-direction: column;
+                }
+
+                content-manager {
+                    flex: 1 1;
+
+                    content-area {
+                        max-height: 100%;
+                        overflow:auto;
+                        display:flex;
+                        top: 42px;
+                        justify-content: center;
+                    }
+                }
+            }
+        }
+    }    
+}
+
+[show-side-bar] {
+    app-switch {
+        width: calc(~"100% - 320px");
+
+        @media @break-phone {
+            width: 100%;
+        }
+    }
+    
+}
