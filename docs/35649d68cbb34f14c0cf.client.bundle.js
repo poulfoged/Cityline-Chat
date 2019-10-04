@@ -43,7 +43,7 @@
 /******/
 /******/ 	// script path function
 /******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "" + "41241f91c30446689a09" + "." + ({"vendors~platform":"vendors~platform"}[chunkId]||chunkId) + ".bundle.js"
+/******/ 		return __webpack_require__.p + "" + "35649d68cbb34f14c0cf" + "." + ({"vendors~platform":"vendors~platform"}[chunkId]||chunkId) + ".bundle.js"
 /******/ 	}
 /******/
 /******/ 	// The require function
@@ -3662,8 +3662,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
 /* harmony import */ var cityline_client__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! cityline-client */ "./node_modules/cityline-client/dist/CitylineClient.js");
 /* harmony import */ var cityline_client__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(cityline_client__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lib_HTTP__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lib/HTTP */ "./source/library/HTTP.ts");
+/* harmony import */ var lib_UrlProvider__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lib/UrlProvider */ "./source/library/UrlProvider.ts");
+/* harmony import */ var lib_HTTP__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! lib/HTTP */ "./source/library/HTTP.ts");
 var _this = undefined;
+
 
 
 
@@ -3677,9 +3679,9 @@ var CitylineSingleton = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    CitylineSingleton._client = new cityline_client__WEBPACK_IMPORTED_MODULE_1__["CitylineClient"]("https://localhost:5001/api/cityline", function () { return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](_this, void 0, void 0, function () { return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
+    CitylineSingleton._client = new cityline_client__WEBPACK_IMPORTED_MODULE_1__["CitylineClient"](lib_UrlProvider__WEBPACK_IMPORTED_MODULE_2__["UrlProvider"].APIRoot + "/api/cityline", function () { return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](_this, void 0, void 0, function () { return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, lib_HTTP__WEBPACK_IMPORTED_MODULE_2__["RequestBuilder"].post.authenticated()];
+            case 0: return [4 /*yield*/, lib_HTTP__WEBPACK_IMPORTED_MODULE_3__["RequestBuilder"].post.authenticated()];
             case 1: return [2 /*return*/, _a.sent()];
         }
     }); }); });
@@ -6160,4 +6162,4 @@ module.exports = __webpack_require__(/*! ./source */"./source/index.ts");
 /***/ })
 
 /******/ });
-//# sourceMappingURL=41241f91c30446689a09.client.bundle.js.map
+//# sourceMappingURL=35649d68cbb34f14c0cf.client.bundle.js.map

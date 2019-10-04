@@ -3,7 +3,7 @@ import { UrlProvider } from "lib/UrlProvider";
 import { RequestBuilder } from "lib/HTTP";
 
 export class CitylineSingleton {
-    private static _client: CitylineClient = new CitylineClient(`https://localhost:5001/api/cityline`, async () => await RequestBuilder.post.authenticated());
+    private static _client: CitylineClient = new CitylineClient(`${UrlProvider.APIRoot}/api/cityline`, async () => await RequestBuilder.post.authenticated());
     static get client() {
         return CitylineSingleton._client;
     }
