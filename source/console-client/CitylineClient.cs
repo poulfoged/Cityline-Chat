@@ -1,150 +1,241 @@
-// using System;
-// using System.IO;
-// using System.Linq;
-// using System.Threading;
-// using System.Net.Http;
-// using System.Collections.Generic;
-// using System.Net;
-// using System.Threading.Tasks;
-// using System.Text;
-// using System.Diagnostics;
-
-// namespace Cityline
-// {
-//     public class CitylineClient
-//     {
-//         private Uri _serverUrl;
-//         private IDictionary<string, Frame> _frames = new Dictionary<string, Frame>();
-//         private IDictionary<string, string> _idCache = new Dictionary<string, string>();
-
-//         public event EventHandler<CitylineEventArgs> FrameReceived;
-//         public CitylineClient(Uri serverUrl)
-//         {
-//             this._serverUrl = serverUrl;
-//         }
-
-//         public async Task StartListening()
-//         {
-//             var buffer = new Buffer();
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
+using System.Runtime.CompilerServices;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 
-//             using (HttpClient httpClient = new HttpClient())
-//             {
-//                 httpClient.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
 
-//                 var message = new HttpRequestMessage(HttpMethod.Post, this._serverUrl);
-//                 message.Content = new System.Net.Http.StringContent("{ tickets: {} }", Encoding.UTF8, "application/json");
-//                 var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead);
-//                 var stream = await response.Content.ReadAsStreamAsync();
+namespace City
+{
+    public class CitylineClient : EventEmitter, IDisposable
+    {
 
-//                 //var stream = httpClient.GetStreamAsync(this._serverUrl).Result;
 
-//                 using (var reader = new StreamReader(stream))
-//                 {
-//                     while (!reader.EndOfStream)
-//                     {
-//                         buffer.Add(reader.ReadLine());
+        internal Uri _serverUrl;
+        private int errorCount = 0;
+        private readonly CancellationTokenSource _internalTokenSource = new CancellationTokenSource();
+        private readonly Action<HttpRequestMessage> _messageModifier;
+        private readonly HttpClient _httpClient;
+        private readonly IDictionary<string, Frame> _frames = new Dictionary<string, Frame>();
+        private readonly IDictionary<string, string> _idCache = new Dictionary<string, string>();
+        private static readonly JsonSerializerSettings settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver(), Formatting = Formatting.None };
 
-//                         while (buffer.HasTerminator())
-//                         {
-//                             var chunk = buffer.Take();
-//                             var frame = ParseFrame(chunk);
-//                             this.AddFrame(frame);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+        public CitylineClient(Uri serverUrl, Func<HttpClient> httpClientFactory = null, Action<HttpRequestMessage> messageModifier = null)
+        {
+            _serverUrl = serverUrl ?? throw new ArgumentNullException(nameof(serverUrl));
+            _messageModifier = messageModifier ?? new Action<HttpRequestMessage>((message) => { });
 
-//         private void AddFrame(Frame frame)
-//         {
-//             if (frame != null && !string.IsNullOrEmpty(frame.EventName))
-//             {
-//                 if (!string.IsNullOrEmpty(frame.Id))
-//                     this._idCache[frame.EventName] = frame.Id;
+            var factory = httpClientFactory ?? new Func<HttpClient>(() => new HttpClient() { Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite) });
+            _httpClient = factory.Invoke();
+        }
 
-//                 this._frames[frame.EventName] = frame;
-//                 FrameReceived.Invoke(this, new CitylineEventArgs(frame.EventName, frame.Data));
-//             }
-//         }
+        public void Dispose()
+        {
+            _internalTokenSource?.Dispose();
+            _httpClient?.Dispose();
+        }
 
-//         private Frame ParseFrame(IEnumerable<string> lines)
-//         {
-//             var result = new Frame();
-//             lines.ToList().ForEach(line =>
-//             {
-//                 var parts = line.Split(": ");
-//                 if (parts.Count() != 2)
-//                     return;
+        private async Task HandleUnsuccessfullResponse(HttpResponseMessage response)
+        {
+            switch (response.StatusCode)
+            {
 
-//                 switch (parts[0])
-//                 {
-//                     case "data":
-//                         result.Data = parts[1].Trim();
-//                         break;
-//                     case "id":
-//                         result.Id = parts[1].Trim();
-//                         break;
-//                     case "event":
-//                         result.EventName = parts[1].Trim();
-//                         break;
+                case HttpStatusCode.NotFound:
+                    throw new CitylineClientException($"Server not found, please ensure that url is correct: {_serverUrl}");
 
-//                 }
-//             });
-//             return result;
-//         }
+                case HttpStatusCode.InternalServerError:
+                    errorCount++;
 
-//     }
+                    if (errorCount > 3)
+                        throw new CitylineClientException("Aborting, Server returned error more than 3 times");
 
-//     class Buffer
-//     {
-//         private List<string> _buffer = new List<string>();
+                    await Task.Delay(RetryOnErrorDelay);
+                    break;
+                default:
+                    throw new CitylineClientException($"Unhandled status resceived from server: {response.StatusCode}, {response.ReasonPhrase}");
+            }
+        }
 
-//         public void Add(string chunk)
-//         {
-//             this._buffer.AddRange(chunk.Split("\n")); ;
-//         }
+        // var handler = new HttpClientHandler
+        // {
+        //     ClientCertificateOptions = ClientCertificateOption.Manual,
+        //     ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => { return true; }
+        // };
 
-//         public bool HasTerminator()
-//         {
-//             return this._buffer.IndexOf("") != -1;
-//         }
+        public TimeSpan RetryOnErrorDelay { get; set; } = TimeSpan.FromSeconds(5);
 
-//         public IEnumerable<string> Take()
-//         {
-//             var position = this._buffer.IndexOf("");
-//             var chunk = this._buffer.Take(position);
-//             this._buffer = this._buffer.Skip(position + 1).ToList();
-//             return chunk;
-//         }
+        public async Task StartListening(CancellationToken externalToken = default(CancellationToken))
+        {
+            using (CancellationTokenSource linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_internalTokenSource.Token, externalToken))
+            {
+                while (!linkedToken.IsCancellationRequested)
+                {
+                    var buffer = new Buffer();
+                    var json = JsonConvert.SerializeObject(new { tickets = _idCache }, settings);
 
-//         public void Clear()
-//         {
-//             this._buffer.Clear();
-//         }
-//     }
+                    using (var message = new HttpRequestMessage(HttpMethod.Post, this._serverUrl))
+                    using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                    {
+                        _messageModifier.Invoke(message);
+                        message.Content = content;
+                        try
+                        {
+                            using (var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead))
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            using (var reader = new StreamReader(stream))
+                            {
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    await HandleUnsuccessfullResponse(response);
+                                    continue;
+                                }
 
-//     class Frame
-//     {
-//         public string Id { get; set; }
-//         public string EventName { get; set; }
-//         public string Data { get; set; }
-//     }
+                                this.errorCount = 0;
 
-//     public class CitylineEventArgs : EventArgs
-//     {
-//         public string EventName { get; }
+                                while (!reader.EndOfStream && !linkedToken.IsCancellationRequested)
+                                {
+                                    buffer.Add(reader.ReadLine());
 
-//         public string Data { get; }
+                                    while (buffer.HasTerminator())
+                                    {
+                                        var chunk = buffer.Take();
+                                        var frame = Frame.Parse(chunk);
+                                        AddFrame(frame);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex) 
+                        {
+                            throw ex;
+                        }
+                    }
+                }
+            }
+        }
 
-//         public CitylineEventArgs(string eventName, string data)
-//         {
-//             this.EventName = eventName;
-//             this.Data = data;
-//         }
+        private void AddFrame(Frame frame)
+        {
+            if (frame == null)
+                return;
 
-//         // public As<T>() {
-//         //     return JsonConvert.Deserialize
-//         // }
-//     }
-// }
+            if (string.IsNullOrWhiteSpace(frame.EventName))
+                return;
+
+            if (string.IsNullOrWhiteSpace(frame.Id))
+                return;
+
+            _idCache[frame.EventName] = frame.Id;
+            _frames[frame.EventName] = frame;
+            Emit(frame.EventName, frame);
+        }
+    }
+
+    public class CitylineClientException : Exception
+    {
+        public CitylineClientException(string message) : base(message)
+        {
+
+        }
+    }
+
+    internal class Buffer
+    {
+        private List<string> _buffer = new List<string>();
+
+        public void Add(string chunk)
+        {
+            _buffer.AddRange(chunk.Split('\n'));
+        }
+
+        public bool HasTerminator()
+        {
+            return _buffer.IndexOf("") != -1;
+        }
+
+        public IEnumerable<string> Take()
+        {
+            var position = _buffer.IndexOf("");
+            var chunk = _buffer.Take(position);
+            _buffer = _buffer.Skip(position + 1).ToList();
+            return chunk;
+        }
+
+        public void Clear()
+        {
+            this._buffer.Clear();
+        }
+    }
+
+    public class EventEmitter
+    {
+        private readonly ConcurrentDictionary<string, ConcurrentBag<Action<Frame>>> _handlers = new ConcurrentDictionary<string, ConcurrentBag<Action<Frame>>>();
+
+        public void Subscribe(string eventName, Action<Frame> handler)
+        {
+            var eventHandlers = _handlers.AddOrUpdate(eventName, new ConcurrentBag<Action<Frame>>(), (k, v) => v);
+            eventHandlers.Add(handler);
+        }
+
+        protected void Emit(string eventName, Frame frame)
+        {
+            if (!_handlers.TryGetValue(eventName, out ConcurrentBag<Action<Frame>> eventHandlers))
+                return;
+
+            eventHandlers.ToList().ForEach(handler =>
+            {
+                handler.Invoke(frame);
+            });
+        }
+    }
+
+    public class Frame
+    {
+        public string Id { get; set; }
+        public string EventName { get; set; }
+        public string Data { get; set; }
+
+        public T As<T>() where T : class
+        {
+            return JsonConvert.DeserializeObject<T>(Data);
+        }
+
+        internal static Frame Parse(IEnumerable<string> lines)
+        {
+            var result = new Frame();
+            lines.ToList().ForEach(line =>
+            {
+                var parts = line.Split(new char[] { ':' }, 2);
+                if (parts.Count() != 2)
+                    return;
+
+                switch (parts[0])
+                {
+                    case "data":
+                        result.Data = parts[1].Trim();
+                        break;
+                    case "id":
+                        result.Id = parts[1].Trim();
+                        break;
+                    case "event":
+                        result.EventName = parts[1].Trim();
+                        break;
+
+                }
+            });
+            return result;
+        }
+    }
+}
