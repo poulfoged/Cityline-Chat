@@ -204,5 +204,6 @@ Icon
 source/Linkstacks/Areas/**/*.css
 source/Linkstacks/Areas/**/*.js
 *.js
+!docs/*.js
 source/Linkstacks/build
 source/Linkstacks/log 
