@@ -1,8 +1,8 @@
 export class UrlProvider {
     static get APIRoot() {
         switch(window.location.hostname) {
+            case "poulfoged.github.io": return "http://chat.devchamp.com"
             case "127.0.0.1": return "https://localhost:5001";
-            case "client.ss.ftl.dk": return "https://api.ss.ftl.dk";
         }
     } 
 }
