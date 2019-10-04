@@ -1,7 +1,8 @@
 
 using Chat.Features.Channels;
 using Chat.Features.Chat;
-using Cityline;
+using Cityline.Server;
+using Cityline.Server.Model;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Chat.Features.Channels 

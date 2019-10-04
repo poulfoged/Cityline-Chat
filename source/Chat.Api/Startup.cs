@@ -41,6 +41,7 @@ namespace Chat.Api
                 .AddElastic()
                 .AddChatFeature()
                 .AddChannelFeature()
+                //.AddPingFeature()
                 .AddUsersFeature()
                 .AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }

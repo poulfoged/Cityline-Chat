@@ -8,6 +8,12 @@
             "script": "task-∞-dev",
             "path": "source/web-client/",
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "task-▶",
+            "path": "source/web-client/",
+            "problemMatcher": []
         }
     ]
 }

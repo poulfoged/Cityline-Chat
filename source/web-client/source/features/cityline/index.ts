@@ -1,4 +1,5 @@
-import { CitylineClient } from "cityline-client";
+// import { CitylineClient } from "cityline-client";
+import { CitylineClient } from "./CitylineClient";
 import { UrlProvider } from "lib/UrlProvider";
 import { RequestBuilder } from "lib/HTTP";
 

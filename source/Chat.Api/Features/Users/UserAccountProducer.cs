@@ -1,5 +1,6 @@
 using Chat.Features.Users;
-using Cityline;
+using Cityline.Server;
+using Cityline.Server.Model;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;

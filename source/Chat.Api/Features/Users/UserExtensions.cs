@@ -1,7 +1,8 @@
 
 using Chat.Features.Users;
-using Cityline;
 using Microsoft.Extensions.DependencyInjection;
+using Cityline.Server;
+using Cityline.Server.Model;
 
 namespace Chat.Features.Users 
 {

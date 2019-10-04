@@ -7,7 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Chat.Features.Users;
 using Chat.Features.Users.Model;
-using Cityline;
+using Cityline.Server;
+using Cityline.Server.Model;
 
 namespace Chat.Features.Chat
 {
