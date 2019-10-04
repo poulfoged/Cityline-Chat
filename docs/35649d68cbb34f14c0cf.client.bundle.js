@@ -5625,7 +5625,7 @@ var UrlProvider = /** @class */ (function () {
     Object.defineProperty(UrlProvider, "APIRoot", {
         get: function () {
             switch (window.location.hostname) {
-                case "poulfoged.github.io": return "http://chat.devchamp.com";
+                case "poulfoged.github.io": return "https://chat.devchamp.com";
                 case "127.0.0.1": return "https://localhost:5001";
             }
         },
