@@ -19,6 +19,9 @@ namespace Chat.Api
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseStartup<Startup>()
+                // .UseKestrel()
+                .UseIISIntegration();
     }
 }
