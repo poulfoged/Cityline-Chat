@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,13 +10,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using System.Runtime.CompilerServices;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-
-
 
 namespace City
 {
@@ -68,11 +62,24 @@ namespace City
             }
         }
 
-        // var handler = new HttpClientHandler
-        // {
-        //     ClientCertificateOptions = ClientCertificateOption.Manual,
-        //     ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => { return true; }
-        // };
+        public Task<Frame> GetFrame(string name) 
+        {
+            var promise = new TaskCompletionSource<Frame>();
+
+            EventHandle handle = null;
+            handle = Subscribe(name, frame => {
+                Unsubscribe(handle); 
+                promise.TrySetResult(frame);
+            });
+
+            if (this._frames.ContainsKey(name)) 
+            {
+                Unsubscribe(handle); 
+                promise.TrySetResult(this._frames[name]);
+            }
+            
+            return promise.Task;       
+        }        
 
         public TimeSpan RetryOnErrorDelay { get; set; } = TimeSpan.FromSeconds(5);
 
@@ -119,6 +126,7 @@ namespace City
                         }
                         catch (Exception ex) 
                         {
+                            Console.WriteLine("Exception" + ex);
                             throw ex;
                         }
                     }
@@ -181,24 +189,44 @@ namespace City
 
     public class EventEmitter
     {
-        private readonly ConcurrentDictionary<string, ConcurrentBag<Action<Frame>>> _handlers = new ConcurrentDictionary<string, ConcurrentBag<Action<Frame>>>();
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<EventHandle, Action<Frame>>> _handlers = new ConcurrentDictionary<string, ConcurrentDictionary<EventHandle, Action<Frame>>>();
 
-        public void Subscribe(string eventName, Action<Frame> handler)
+        public EventHandle Subscribe(string eventName, Action<Frame> handler)
         {
-            var eventHandlers = _handlers.AddOrUpdate(eventName, new ConcurrentBag<Action<Frame>>(), (k, v) => v);
-            eventHandlers.Add(handler);
+            var eventHandlers = _handlers.AddOrUpdate(eventName, new ConcurrentDictionary<EventHandle, Action<Frame>>(), (k, v) => v);
+
+            var handle = new EventHandle(eventName);
+
+            eventHandlers.TryAdd(handle, handler);
+            return handle;
+        }
+
+        public void Unsubscribe(EventHandle handle)
+        {
+            var eventHandlers = _handlers.AddOrUpdate(handle.EventName, new ConcurrentDictionary<EventHandle, Action<Frame>>(), (k, v) => v);
+            eventHandlers.TryRemove(handle, out Action<Frame> action);
         }
 
         protected void Emit(string eventName, Frame frame)
         {
-            if (!_handlers.TryGetValue(eventName, out ConcurrentBag<Action<Frame>> eventHandlers))
+            if (!_handlers.TryGetValue(eventName, out ConcurrentDictionary<EventHandle, Action<Frame>> eventHandlers))
                 return;
 
-            eventHandlers.ToList().ForEach(handler =>
+            eventHandlers.Values.ToList().ForEach(handler =>
             {
                 handler.Invoke(frame);
             });
         }
+    }
+
+    public class EventHandle 
+    {   
+        public EventHandle(string eventName) 
+        {
+            EventName = eventName;
+        }
+
+        public string EventName { get; }
     }
 
     public class Frame
