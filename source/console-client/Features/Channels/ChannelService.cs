@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using City;
+using Cityline.Client;
 using Features.Chat;
 using Infrastructure;
 using Newtonsoft.Json;
