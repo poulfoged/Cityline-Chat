@@ -15,5 +15,7 @@ namespace Chat.Features.Channels
         public bool IsPublic { get; set; }
 
         public ISet<string> AllowedUsers { get; private set; } = new HashSet<string>();
+
+        public bool EnsureUnique { get;set;} = true;
     }
 }

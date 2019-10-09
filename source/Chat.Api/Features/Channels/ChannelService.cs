@@ -25,6 +25,22 @@ namespace Chat.Features.Chat
             _chatService = chatService ?? new ChatService();
         }
 
+        internal async Task<Channel> FindChannel(IPrincipal user, string name)
+        {
+            if (name.ToLowerInvariant() == "global")
+                await Ensure(user, "Global");
+
+            var response = await _client.SearchAsync<Channel>(m => m
+                .Query(q => q
+                    .Bool(bo => bo
+                        .Should(te => te.Term(t => t.Field(fi => fi.Id).Value(name)), 
+                                te => te.Term(t => t.Field(fi => fi.Name.Suffix("keyword")).Value(name))
+                    ))
+                )
+            );
+
+            return response.Documents.FirstOrDefault();
+        }
 
         public async Task<Channel> Ensure(IPrincipal user, string name) 
         {
@@ -57,6 +73,9 @@ namespace Chat.Features.Chat
             }
 
             var userAccount = await _userService.FindById(user.UserId());
+
+            if (userAccount.Channels.Contains(id))
+                return channel;
 
             userAccount.Channels.Add(id);
 

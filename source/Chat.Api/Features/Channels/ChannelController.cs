@@ -19,9 +19,15 @@ namespace Chat.Features.Channels
 
 
         [HttpPost] 
-        public async Task<ActionResult> Create(ChannelViewModel channelViewModel) 
+        public async Task<ActionResult> EnsureAndJoin(ChannelViewModel channelViewModel) 
         {
-            var channel = await _channelService.Create(User, channelViewModel.Name, channelViewModel.IsPublic, channelViewModel.AllowedUsers);
+            Channel channel = null;
+            if (!channelViewModel.EnsureUnique)
+                channel = await _channelService.FindChannel(User, channelViewModel.Name);
+
+            if (channel == null)
+                channel = await _channelService.Create(User, channelViewModel.Name, channelViewModel.IsPublic, channelViewModel.AllowedUsers);
+
             if (channel != null)
                 await _channelService.Join(User, channel.Id);
 
