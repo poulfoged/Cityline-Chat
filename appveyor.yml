@@ -40,11 +40,11 @@ install:
   # install modules
 
 before_build:
-  - nuget restore "source\Cityline-Chat.sln"
+  - nuget restore "source\Chat.sln"
   
 build:
   parallel: true                            # enable MSBuild parallel builds
-  project: source\Cityline-Chat.sln         # path to Visual Studio solution or project
+  project: source\Chat.sln                  # path to Visual Studio solution or project
   publish_nuget: true                       # package projects with .nuspec files and push to artifacts
   publish_nuget_symbols: true               # generate and publish NuGet symbol packages
 
