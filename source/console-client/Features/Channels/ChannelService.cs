@@ -58,7 +58,7 @@ namespace Features.Channels
         public void ShowUsage() 
         {
             _console.ClearLine();
-            _out.WriteLine("/channel [join | leave | create] channel-name");
+            _out.WriteLine("/channel [join] channel-name");
             Ready();
             
         }
