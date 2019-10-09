@@ -14,9 +14,8 @@ namespace console_client
         static async Task Main(string[] args)
         {
             var console = new ConsoleWrapper();
-            string deviceId = new Guid("6d68f096-08e3-485f-83d2-28ef66a5c854").ToString("N");
-
-            //Console.Write("\r" + new string(' ', Console.WindowWidth) + "\r");
+            var deviceId = UserService.EnsureDeviceId();
+    
             Console.WriteLine(" ");
             Console.Write(new string('=', Console.WindowWidth));
             Console.WriteLine("Chat Demo");

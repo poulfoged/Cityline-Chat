@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Cityline.Client;
 using Infrastructure;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Features.Users 
 {
@@ -16,6 +17,34 @@ namespace Features.Users
         {
             _citylineClient = citylineClient;
             _httpClient = httpClient;
+        }
+
+        public static string EnsureDeviceId() 
+        {
+            UserAccount tempAccount;
+            var file = new FileInfo("user-info.json");
+            if (file.Exists) 
+            {
+                using (var fileStream = file.OpenRead()) 
+                using (var reader = new StreamReader(fileStream))
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    tempAccount = new JsonSerializer().Deserialize<UserAccount>(jsonReader);
+                }
+
+                return tempAccount.DeviceId;
+            }
+
+            tempAccount = new UserAccount { DeviceId = Guid.NewGuid().ToString("N") };
+
+                using (var fileStream = file.OpenWrite()) 
+                using (var reader = new StreamWriter(fileStream))
+                using (var jsonReader = new JsonTextWriter(reader))
+                {
+                    new JsonSerializer() { ContractResolver = new CamelCasePropertyNamesContractResolver() }.Serialize(jsonReader, tempAccount);
+                }
+
+                return tempAccount.DeviceId;
         }
 
         public async Task Initialize() 
